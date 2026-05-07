@@ -12,8 +12,9 @@ type Lexer struct {
 	position     int
 	readPosition int
 	ch           rune
-	ErrorCount   int
-	err          func(pos token.Position, msg string)
+
+	ErrorCount int
+	err        func(pos token.Position, msg string)
 }
 
 func New(input string) *Lexer {
@@ -64,6 +65,7 @@ func (l *Lexer) next() {
 		if l.ch == '\n' {
 			// again here we need to check the logic of how we are going to handle new lines and ensure that
 			// we are storing each lines initial byte -> POSITION MARKING
+			// TODO -> implement a way to add new line marking here
 		}
 		l.ch = eof
 	}
@@ -79,3 +81,5 @@ func (l *Lexer) error(position int, msg string) {
 func (l *Lexer) errorf(position int, format string, arg ...any) {
 	l.error(position, fmt.Sprintf(format, arg...))
 }
+
+func (l *Lexer) Scan() (token token.Token)

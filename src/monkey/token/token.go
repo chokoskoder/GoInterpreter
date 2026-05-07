@@ -5,8 +5,9 @@ import "strconv"
 type TokenType int
 
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type     TokenType
+	Literal  string
+	Position Position
 }
 
 const (
