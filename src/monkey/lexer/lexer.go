@@ -32,6 +32,7 @@ func (l *Lexer) next() {
 		l.position = l.readPosition
 		if l.ch == '\n' {
 			// TODO: track line and column position here
+			token.AddLine(l.position)
 		}
 
 		r, w := rune(l.input[l.readPosition]), 1
@@ -66,6 +67,7 @@ func (l *Lexer) next() {
 			// again here we need to check the logic of how we are going to handle new lines and ensure that
 			// we are storing each lines initial byte -> POSITION MARKING
 			// TODO -> implement a way to add new line marking here
+			token.AddLine(l.position)
 		}
 		l.ch = eof
 	}
@@ -82,4 +84,11 @@ func (l *Lexer) errorf(position int, format string, arg ...any) {
 	l.error(position, fmt.Sprintf(format, arg...))
 }
 
-func (l *Lexer) Scan() (token token.Token)
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' && l.ch == '\r' {
+		l.next()
+	}
+}
+
+// the library is using insertSemi for some reason, I have not figured it out yet and I need to
+func (l *Lexer) Scan() (token token.Token) {}
