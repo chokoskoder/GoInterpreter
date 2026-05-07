@@ -91,4 +91,60 @@ func (l *Lexer) skipWhitespace() {
 }
 
 // the library is using insertSemi for some reason, I have not figured it out yet and I need to
-func (l *Lexer) Scan() (token token.Token) {}
+func (l *Lexer) Scan() (returnToken token.Token) {
+	l.skipWhitespace()
+
+	var tok token.Token
+
+	switch l.ch {
+	case '=':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.ASSIGN, l.ch, pos)
+		}
+	case '+':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.PLUS, l.ch, pos)
+		}
+	case '{':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.LBRACE, l.ch, pos)
+		}
+	case '}':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.RBRACE, l.ch, pos)
+		}
+	case '(':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.LPAREN, l.ch, pos)
+		}
+	case ')':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.RPAREN, l.ch, pos)
+		}
+	case ',':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.COMMA, l.ch, pos)
+		}
+	case ';':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.SEMICOLON, l.ch, pos)
+		}
+	case eof:
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			tok = newToken(token.EOF, l.ch, pos)
+		}
+	}
+}
+
+func newToken(tokenType token.TokenType, ch rune, charPos token.Position) token.Token {
+	return token.Token{tokenType, ch, charPos}
+}
