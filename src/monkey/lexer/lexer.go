@@ -19,6 +19,8 @@ type Lexer struct {
 
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
+	l.next()
+	token.InitLines()
 	return l
 }
 
@@ -85,7 +87,7 @@ func (l *Lexer) errorf(position int, format string, arg ...any) {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' && l.ch == '\r' {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.next()
 	}
 }
@@ -100,51 +102,71 @@ func (l *Lexer) Scan() (returnToken token.Token) {
 	case '=':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.ASSIGN, l.ch, pos)
 		}
 	case '+':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.PLUS, l.ch, pos)
 		}
 	case '{':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.LBRACE, l.ch, pos)
 		}
 	case '}':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.RBRACE, l.ch, pos)
 		}
 	case '(':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.LPAREN, l.ch, pos)
 		}
 	case ')':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.RPAREN, l.ch, pos)
 		}
 	case ',':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.COMMA, l.ch, pos)
 		}
 	case ';':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
 			tok = newToken(token.SEMICOLON, l.ch, pos)
 		}
 	case eof:
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
-			tok = newToken(token.EOF, l.ch, pos)
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = token.Token{token.EOF, string(""), pos}
 		}
 	}
+	l.next()
+	return tok
 }
 
 func newToken(tokenType token.TokenType, ch rune, charPos token.Position) token.Token {
-	return token.Token{tokenType, ch, charPos}
+	return token.Token{tokenType, string(ch), charPos}
 }

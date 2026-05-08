@@ -64,7 +64,7 @@ var tokenTypes = [...]string{
 	ELSE:      "ELSE",
 }
 
-func (tok Token) String() string {
+func (tok *Token) String() string {
 	s := ""
 	if 0 <= tok.Type && tok.Type < TokenType(len(tokenTypes)) {
 		s = tokenTypes[tok.Type]
