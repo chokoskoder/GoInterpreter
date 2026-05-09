@@ -21,6 +21,12 @@ const (
 	// operators
 	ASSIGN
 	PLUS
+	BANG
+	MINUS
+	SLASH
+	ASTERISK
+	LT
+	GT
 
 	// DELIMITERS
 
@@ -49,6 +55,12 @@ var tokenTypes = [...]string{
 	INT:       "INT",
 	ASSIGN:    "ASSIGN",
 	PLUS:      "PLUS",
+	BANG:      "BANG",
+	MINUS:     "MINUS",
+	SLASH:     "SLASH",
+	ASTERISK:  "ASTERISK",
+	LT:        "LT",
+	GT:        "GT",
 	COMMA:     "COMMA",
 	SEMICOLON: "SEMICOLON",
 	LPAREN:    "LPAREN",

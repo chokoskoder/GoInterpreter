@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"fmt"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/chokoskoder/GoInterpreter/token"
@@ -28,6 +29,14 @@ const (
 	bom = 0xFEFF // byte order mark, only permitted as very first character
 	eof = -1     // end of file
 )
+
+// how does this function return a byte when all the chars are been represented in runes ?
+func (l *Lexer) peek() byte {
+	if l.readPosition < len(l.input) {
+		return l.input[l.readPosition]
+	}
+	return 0
+}
 
 func (l *Lexer) next() {
 	if l.readPosition < len(l.input) {
@@ -89,6 +98,27 @@ func (l *Lexer) errorf(position int, format string, arg ...any) {
 func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.next()
+	}
+}
+
+func (l *Lexer) ScanComments() (string, int) {
+	offs := l.position - 1
+	next := -1
+	numCR := 0 // this is for \r
+	nlOffset := 0
+
+	if l.ch == '/' {
+		//=style comment
+		// (the final '\n' is not considered part of the comment)
+
+		l.next()
+
+		for l.ch != '\n' && l.ch >= 0 {
+			if l.ch == '\r' {
+				numCR++
+			}
+			l.next()
+		}
 	}
 }
 
@@ -155,6 +185,48 @@ func (l *Lexer) Scan() (returnToken token.Token) {
 		} else {
 			tok = newToken(token.SEMICOLON, l.ch, pos)
 		}
+	case '!':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.BANG, l.ch, pos)
+		}
+	case '-':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.MINUS, l.ch, pos)
+		}
+	case '/':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.SLASH, l.ch, pos)
+		}
+	case '*':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.ASTERISK, l.ch, pos)
+		}
+	case '<':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.LT, l.ch, pos)
+		}
+	case '>':
+		pos, err := token.CalculatePosition(l.position)
+		if err != nil {
+			l.errorf(l.position, "%s", err.Error())
+		} else {
+			tok = newToken(token.GT, l.ch, pos)
+		}
 	case eof:
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
@@ -162,11 +234,72 @@ func (l *Lexer) Scan() (returnToken token.Token) {
 		} else {
 			tok = token.Token{token.EOF, string(""), pos}
 		}
+	default:
+		if isLetter(l.ch) {
+			tok.Literal = l.readIdentifier()
+			tok.Type = token.Lookup(tok.Literal)
+			pos, err := token.CalculatePosition(l.position)
+			if err == nil {
+				tok.Position = pos
+			} else {
+				l.errorf(l.position, "%s", err.Error())
+			}
+			return tok
+		} else if isDigit(l.ch) {
+			tok.Type = token.INT
+			tok.Literal = l.readNumber()
+			pos, err := token.CalculatePosition(l.position)
+			if err == nil {
+				tok.Position = pos
+			} else {
+				l.errorf(l.position, "%s", err.Error())
+			}
+			return tok
+		} else {
+			pos, err := token.CalculatePosition(l.position)
+			if err == nil {
+				tok.Position = pos
+			} else {
+				l.errorf(l.position, "%s", err.Error())
+			}
+			tok = newToken(token.ILLEGAL, l.ch, pos)
+		}
+
 	}
 	l.next()
 	return tok
 }
 
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+	for isLetter(l.ch) {
+		l.next()
+	}
+	return l.input[position:l.position]
+}
+
+func isLetter(ch rune) bool {
+	return 'a' <= lower(ch) && lower(ch) <= 'z' || ch == '_' || ch >= utf8.RuneSelf && unicode.IsLetter(ch)
+}
+
+func lower(ch rune) rune {
+	return ('a' - 'A' | ch)
+}
+
+// this is really interesting and uses mathematics, nice dsa solulu
+
 func newToken(tokenType token.TokenType, ch rune, charPos token.Position) token.Token {
 	return token.Token{tokenType, string(ch), charPos}
+}
+
+func isDigit(ch rune) bool {
+	return '0' <= ch && ch <= '9'
+}
+
+func (l *Lexer) readNumber() string {
+	position := l.position
+	for isDigit(l.ch) {
+		l.next()
+	}
+	return l.input[position:l.position]
 }
