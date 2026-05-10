@@ -13,6 +13,7 @@ type Token struct {
 const (
 	ILLEGAL TokenType = iota
 	EOF
+	COMMENT
 	// identifiers
 
 	IDENT
@@ -51,6 +52,7 @@ const (
 var tokenTypes = [...]string{
 	ILLEGAL:   "ILLEGAL",
 	EOF:       "EOF",
+	COMMENT:   "COMMENT",
 	IDENT:     "IDENT",
 	INT:       "INT",
 	ASSIGN:    "ASSIGN",

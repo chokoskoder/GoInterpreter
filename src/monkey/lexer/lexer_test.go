@@ -15,8 +15,14 @@ let add = fn(x, y) {
 };
 
 let result = add(five, ten);
-!-/*5;
+!-/ *5;
 5 < 10 > 5;
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
 `
 
 	tests := []struct {
@@ -71,6 +77,23 @@ let result = add(five, ten);
 		{token.GT, ">"},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 
@@ -84,6 +107,67 @@ let result = add(five, ten);
 		}
 		if tok.Literal != tt.expectedLiteral {
 			t.Fatalf("tests[%d] - literal wrong , expected - %q , got - %q", i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestCommentScanning(t *testing.T) {
+	input := `// line comment
+/* block
+   comment */
+5`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.COMMENT, "// line comment"},
+		{token.COMMENT, "/* block\n   comment */"},
+		{token.INT, "5"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+	l.mode = scanComments
+
+	for i, tt := range tests {
+		tok := l.Scan()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong, expected %d, got %d", i, tt.expectedType, tok.Type)
+		}
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong, expected %q, got %q", i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestCommentsSkipped(t *testing.T) {
+	input := `let x = // this is ignored
+5;`
+
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.LET, "let"},
+		{token.IDENT, "x"},
+		{token.ASSIGN, "="},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.EOF, ""},
+	}
+
+	l := New(input) // default mode: comments skipped
+
+	for i, tt := range tests {
+		tok := l.Scan()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong, expected %d, got %d", i, tt.expectedType, tok.Type)
+		}
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong, expected %q, got %q", i, tt.expectedLiteral, tok.Literal)
 		}
 	}
 }

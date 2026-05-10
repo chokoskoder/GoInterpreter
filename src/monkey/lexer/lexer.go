@@ -16,7 +16,17 @@ type Lexer struct {
 
 	ErrorCount int
 	err        func(pos token.Position, msg string)
+
+	mode Mode
 }
+
+type Mode int
+
+const (
+	scanComments Mode = 1 << iota
+	dontInsertEmojis
+	// lets add a helper function which will randomly decide to insert emojis to throw off people (or something like an easter egg bug ??)
+)
 
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
@@ -30,7 +40,6 @@ const (
 	eof = -1     // end of file
 )
 
-// how does this function return a byte when all the chars are been represented in runes ?
 func (l *Lexer) peek() byte {
 	if l.readPosition < len(l.input) {
 		return l.input[l.readPosition]
@@ -101,7 +110,7 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
-func (l *Lexer) ScanComments() (string, int) {
+func (l *Lexer) scanComments() (string, int) {
 	offs := l.position - 1
 	next := -1
 	numCR := 0 // this is for \r
@@ -119,11 +128,43 @@ func (l *Lexer) ScanComments() (string, int) {
 			}
 			l.next()
 		}
+		// if we are at \n the position following ther is afterwards
+		next = l.position
+		if l.ch == '\n' {
+			next++
+		}
+		goto exit
 	}
+
+	// we will also have support for /*---style comments----*/
+	l.next()
+	for l.ch >= 0 {
+		ch := l.ch
+		l.next()
+		if ch == '\r' {
+			numCR++
+		} else if ch == '\n' && nlOffset == 0 {
+			nlOffset = l.position
+		}
+		if ch == '*' && l.ch == '/' {
+			l.next()
+			next = l.position
+			goto exit
+		}
+
+	}
+	l.error(offs, "comment not terminated")
+exit:
+	lit := l.input[offs:l.position]
+
+	return lit, nlOffset
+	// on windows a // commnent might end in "\r\n",
 }
 
 // the library is using insertSemi for some reason, I have not figured it out yet and I need to
 func (l *Lexer) Scan() (returnToken token.Token) {
+scanAgain:
+
 	l.skipWhitespace()
 
 	var tok token.Token
@@ -200,6 +241,24 @@ func (l *Lexer) Scan() (returnToken token.Token) {
 			tok = newToken(token.MINUS, l.ch, pos)
 		}
 	case '/':
+		// we use peek and then copy the logic used by the scanner
+		nextChar := l.peek()
+		if nextChar == '/' || nextChar == '*' {
+			commentPos, posErr := token.CalculatePosition(l.position)
+			if posErr != nil {
+				l.errorf(l.position, "%s", posErr.Error())
+			}
+			l.next() // consume the first '/'; scanComments expects to be called after this
+			comment, nlOffset := l.scanComments()
+			if nlOffset != 0 {
+				token.AddLine(nlOffset)
+			}
+			if l.mode&scanComments == 0 {
+				goto scanAgain
+			}
+			return token.Token{token.COMMENT, comment, commentPos}
+		}
+
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
 			l.errorf(l.position, "%s", err.Error())
