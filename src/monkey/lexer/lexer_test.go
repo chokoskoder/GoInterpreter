@@ -23,6 +23,13 @@ if (5 < 10) {
 } else {
 	return false;
 }
+10 == 10;
+9 != 10;
+5 <= 10;
+10 >= 5;
+3 << 2;
+10 >> 1;
+x >>= 2;
 `
 
 	tests := []struct {
@@ -94,6 +101,35 @@ if (5 < 10) {
 		{token.FALSE, "false"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		// multi-byte operator tokens
+		{token.INT, "10"},
+		{token.EQ, "=="},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "9"},
+		{token.NOT_EQ, "!="},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "5"},
+		{token.LT_EQ, "<="},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "10"},
+		{token.GT_EQ, ">="},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "3"},
+		{token.SHL, "<<"},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "10"},
+		{token.SHR, ">>"},
+		{token.INT, "1"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "x"},
+		{token.SHR_ASSIGN, ">>="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
 

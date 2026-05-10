@@ -161,6 +161,46 @@ exit:
 	// on windows a // commnent might end in "\r\n",
 }
 
+func (l *Lexer) switch2(tok0, tok1 token.TokenType) token.TokenType {
+	nextChar := l.peek()
+	if nextChar == '=' {
+		l.next()
+		return tok1
+	}
+	return tok0
+}
+
+func (l *Lexer) switch3(tok0, tok1 token.TokenType, ch2 rune, tok2 token.TokenType) token.TokenType {
+	nextChar := l.peek()
+	if nextChar == '=' {
+		l.next()
+		return tok1
+	}
+	if nextChar == byte(ch2) {
+		l.next()
+		return tok2
+	}
+	return tok0
+}
+
+func (l *Lexer) switch4(tok0, tok1 token.TokenType, ch2 rune, tok2, tok3 token.TokenType) token.TokenType {
+	nextChar := l.peek()
+	if nextChar == '=' {
+		l.next()
+		return tok1
+	}
+	if nextChar == byte(ch2) {
+		l.next()
+		nextChar2 := l.peek()
+		if nextChar2 == '=' {
+			l.next()
+			return tok3
+		}
+		return tok2
+	}
+	return tok0
+}
+
 // the library is using insertSemi for some reason, I have not figured it out yet and I need to
 func (l *Lexer) Scan() (returnToken token.Token) {
 scanAgain:
@@ -175,7 +215,9 @@ scanAgain:
 		if err != nil {
 			l.errorf(l.position, "%s", err.Error())
 		} else {
-			tok = newToken(token.ASSIGN, l.ch, pos)
+			startPos := l.position
+			tokType := l.switch2(token.ASSIGN, token.EQ)
+			tok = token.Token{tokType, l.input[startPos:l.readPosition], pos}
 		}
 	case '+':
 		pos, err := token.CalculatePosition(l.position)
@@ -231,7 +273,9 @@ scanAgain:
 		if err != nil {
 			l.errorf(l.position, "%s", err.Error())
 		} else {
-			tok = newToken(token.BANG, l.ch, pos)
+			startPos := l.position
+			tokType := l.switch2(token.BANG, token.NOT_EQ)
+			tok = token.Token{tokType, l.input[startPos:l.readPosition], pos}
 		}
 	case '-':
 		pos, err := token.CalculatePosition(l.position)
@@ -277,14 +321,18 @@ scanAgain:
 		if err != nil {
 			l.errorf(l.position, "%s", err.Error())
 		} else {
-			tok = newToken(token.LT, l.ch, pos)
+			startPos := l.position
+			tokType := l.switch3(token.LT, token.LT_EQ, '<', token.SHL)
+			tok = token.Token{tokType, l.input[startPos:l.readPosition], pos}
 		}
 	case '>':
 		pos, err := token.CalculatePosition(l.position)
 		if err != nil {
 			l.errorf(l.position, "%s", err.Error())
 		} else {
-			tok = newToken(token.GT, l.ch, pos)
+			startPos := l.position
+			tokType := l.switch4(token.GT, token.GT_EQ, '>', token.SHR, token.SHR_ASSIGN)
+			tok = token.Token{tokType, l.input[startPos:l.readPosition], pos}
 		}
 	case eof:
 		pos, err := token.CalculatePosition(l.position)

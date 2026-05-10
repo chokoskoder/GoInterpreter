@@ -29,6 +29,15 @@ const (
 	LT
 	GT
 
+	// multi-byte operators
+	EQ
+	NOT_EQ
+	LT_EQ
+	GT_EQ
+	SHL
+	SHR
+	SHR_ASSIGN
+
 	// DELIMITERS
 
 	COMMA
@@ -55,14 +64,21 @@ var tokenTypes = [...]string{
 	COMMENT:   "COMMENT",
 	IDENT:     "IDENT",
 	INT:       "INT",
-	ASSIGN:    "ASSIGN",
-	PLUS:      "PLUS",
-	BANG:      "BANG",
-	MINUS:     "MINUS",
-	SLASH:     "SLASH",
-	ASTERISK:  "ASTERISK",
-	LT:        "LT",
-	GT:        "GT",
+	ASSIGN:      "ASSIGN",
+	PLUS:        "PLUS",
+	BANG:        "BANG",
+	MINUS:       "MINUS",
+	SLASH:       "SLASH",
+	ASTERISK:    "ASTERISK",
+	LT:          "LT",
+	GT:          "GT",
+	EQ:          "EQ",
+	NOT_EQ:      "NOT_EQ",
+	LT_EQ:       "LT_EQ",
+	GT_EQ:       "GT_EQ",
+	SHL:         "SHL",
+	SHR:         "SHR",
+	SHR_ASSIGN:  "SHR_ASSIGN",
 	COMMA:     "COMMA",
 	SEMICOLON: "SEMICOLON",
 	LPAREN:    "LPAREN",
