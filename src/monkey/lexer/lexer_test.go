@@ -164,7 +164,7 @@ func TestCommentScanning(t *testing.T) {
 	}
 
 	l := New(input)
-	l.mode = scanComments
+	l.mode = ScanComments
 
 	for i, tt := range tests {
 		tok := l.Scan()

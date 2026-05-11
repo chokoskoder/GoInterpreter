@@ -23,13 +23,17 @@ type Lexer struct {
 type Mode int
 
 const (
-	scanComments Mode = 1 << iota
+	ScanComments Mode = 1 << iota
 	dontInsertEmojis
 	// lets add a helper function which will randomly decide to insert emojis to throw off people (or something like an easter egg bug ??)
 )
 
 func New(input string) *Lexer {
-	l := &Lexer{input: input}
+	return NewWithMode(input, 0)
+}
+
+func NewWithMode(input string, mode Mode) *Lexer {
+	l := &Lexer{input: input, mode: mode}
 	l.next()
 	token.InitLines()
 	return l
@@ -297,7 +301,7 @@ scanAgain:
 			if nlOffset != 0 {
 				token.AddLine(nlOffset)
 			}
-			if l.mode&scanComments == 0 {
+			if l.mode&ScanComments == 0 {
 				goto scanAgain
 			}
 			return token.Token{token.COMMENT, comment, commentPos}
